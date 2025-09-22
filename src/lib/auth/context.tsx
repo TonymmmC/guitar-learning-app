@@ -30,11 +30,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<AuthError | null>(null)
+  const [mounted, setMounted] = useState(false)
 
   const isAuthenticated = !!user
 
   // Inicializar usuario al cargar la app
   useEffect(() => {
+    setMounted(true)
+    
     const initializeAuth = async () => {
       try {
         setIsLoading(true)
@@ -103,12 +106,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return false
       }
 
-      if (newUser) {
-        setUser(newUser)
-        return true
-      }
-
-      return false
+      // Si no hay error, el registro fue exitoso
+      return true
     } catch (error) {
       setError({
         message: 'Error inesperado al registrarse',
@@ -164,6 +163,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
     logout,
     clearError,
     refreshUser
+  }
+
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <AuthContext.Provider value={{
+        user: null,
+        isLoading: true,
+        isAuthenticated: false,
+        error: null,
+        login: async () => false,
+        register: async () => false,
+        logout: async () => {},
+        clearError: () => {},
+        refreshUser: async () => {}
+      }}>
+        {children}
+      </AuthContext.Provider>
+    )
   }
 
   return (

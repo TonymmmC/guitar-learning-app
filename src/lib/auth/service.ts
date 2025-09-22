@@ -1,28 +1,15 @@
 // src/lib/auth/service.ts
-import { supabase } from '@/lib/supabase/client'
-
-export interface AuthUser {
-  id: string
-  email: string
-  role: string
-  full_name?: string
-}
-
-export interface LoginCredentials {
-  email: string
-  password: string
-}
-
-export interface RegisterData {
-  email: string
-  password: string
-  full_name?: string
-}
-
-export interface AuthError {
-  message: string
-  type: string
-}
+import { supabase } from '../supabase/client'
+import type { 
+  AuthUser, 
+  LoginCredentials, 
+  RegisterData, 
+  AuthError,
+  UserRole,
+  SubscriptionStatus,
+  Language,
+  NotationPreference
+} from './types'
 
 class AuthService {
   async login(credentials: LoginCredentials): Promise<{ user: AuthUser | null; error: AuthError | null }> {
@@ -81,6 +68,21 @@ class AuthService {
         }
       }
 
+      // Si el usuario se creó pero necesita confirmación
+      if (data.user && !data.session) {
+        return {
+          user: null,
+          error: null // Sin error, registro exitoso
+        }
+      }
+
+      // Si el usuario se creó y tiene sesión activa
+      if (data.user && data.session) {
+        const profile = await this.getProfile(data.user.id)
+        return { user: profile, error: null }
+      }
+
+      // Registro exitoso en cualquier caso
       return { user: null, error: null }
     } catch (error) {
       return {
@@ -132,16 +134,22 @@ class AuthService {
 
   private async getProfile(userId: string): Promise<AuthUser | null> {
     try {
-      // Por ahora retornamos un perfil básico
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) return null
 
+      // Por ahora retornamos un perfil básico hasta que tengamos la tabla profiles
       return {
         id: user.id,
         email: user.email || '',
-        role: 'student',
-        full_name: user.user_metadata?.full_name
+        role: 'student' satisfies UserRole,
+        subscription_status: 'free' satisfies SubscriptionStatus,
+        language: 'es' satisfies Language,
+        notation_preference: 'spanish' satisfies NotationPreference,
+        full_name: user.user_metadata?.full_name,
+        avatar_url: undefined,
+        created_at: user.created_at,
+        updated_at: user.updated_at || user.created_at
       }
     } catch (error) {
       console.error('Error in getProfile:', error)

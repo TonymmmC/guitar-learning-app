@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+// src/lib/supabase.ts - DEPRECATED
+// Usa src/lib/supabase/client.ts en su lugar
+// Este archivo se puede eliminar después
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+export { supabase } from './supabase/client'
