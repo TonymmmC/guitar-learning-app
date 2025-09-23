@@ -2,20 +2,46 @@
 
 import { useAuth } from '@/lib/auth/context'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 
 export default function DashboardPage() {
   const { user, logout, isLoading } = useAuth()
   const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  // ✅ Prevenir hydration mismatch
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     await logout()
     router.push('/auth/login')
   }
 
-  if (isLoading) {
+  // ✅ Mostrar loading estático hasta que esté mounted
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <div className="text-white">Cargando...</div>
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+          <div className="text-white">Cargando...</div>
+        </div>
+      </div>
+    )
+  }
+
+  // ✅ Si no hay usuario, redirigir
+  if (!user) {
+    useEffect(() => {
+      router.push('/auth/login')
+    }, [router])
+    
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-white">Redirigiendo...</div>
+        </div>
       </div>
     )
   }
