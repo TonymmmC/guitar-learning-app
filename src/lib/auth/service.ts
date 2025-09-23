@@ -133,29 +133,54 @@ class AuthService {
   }
 
   private async getProfile(userId: string): Promise<AuthUser | null> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser()
-      
-      if (!user) return null
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    
+    if (!user) return null
 
-      // Por ahora retornamos un perfil básico hasta que tengamos la tabla profiles
+    // Obtener perfil de la tabla profiles
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+
+    if (error || !profile) {
+      console.error('Error getting profile:', error)
+      
+      // Fallback: retornar perfil básico si no existe en profiles
       return {
         id: user.id,
         email: user.email || '',
-        role: 'student' satisfies UserRole,
-        subscription_status: 'free' satisfies SubscriptionStatus,
-        language: 'es' satisfies Language,
-        notation_preference: 'spanish' satisfies NotationPreference,
+        role: 'student' as UserRole,
+        subscription_status: 'free' as SubscriptionStatus,
+        language: 'es' as Language,
+        notation_preference: 'spanish' as NotationPreference,
         full_name: user.user_metadata?.full_name,
         avatar_url: undefined,
         created_at: user.created_at,
         updated_at: user.updated_at || user.created_at
       }
-    } catch (error) {
-      console.error('Error in getProfile:', error)
-      return null
     }
+
+    // Retornar el perfil de la base de datos
+    return {
+      id: profile.id,
+      email: profile.email,
+      role: profile.role as UserRole,
+      subscription_status: profile.subscription_status as SubscriptionStatus,
+      language: profile.language as Language,
+      notation_preference: profile.notation_preference as NotationPreference,
+      full_name: profile.full_name,
+      avatar_url: profile.avatar_url,
+      created_at: profile.created_at,
+      updated_at: profile.updated_at
+    }
+  } catch (error) {
+    console.error('Error in getProfile:', error)
+    return null
   }
+}
 
   onAuthStateChange(callback: (user: AuthUser | null) => void) {
     return supabase.auth.onAuthStateChange(async (event, session) => {

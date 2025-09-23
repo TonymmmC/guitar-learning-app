@@ -63,6 +63,7 @@ export async function middleware(request: NextRequest) {
   const isAuthPage = url.pathname.startsWith('/auth')
   const isProtectedPage = url.pathname.startsWith('/dashboard') || 
                           url.pathname.startsWith('/admin')
+  const isAdminPage = url.pathname.startsWith('/admin')
 
   // Si está autenticado y va a auth, redirect a dashboard
   if (user && isAuthPage) {
@@ -74,6 +75,27 @@ export async function middleware(request: NextRequest) {
   if (!user && isProtectedPage) {
     url.pathname = '/auth/login'
     return NextResponse.redirect(url)
+  }
+
+  // Si va a admin, verificar que tenga rol apropiado
+  if (user && isAdminPage) {
+    try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+
+      // Solo admins pueden acceder a /admin
+      if (!profile || profile.role === 'student') {
+        url.pathname = '/dashboard'
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      // Si hay error obteniendo el perfil, redirect a dashboard
+      url.pathname = '/dashboard'
+      return NextResponse.redirect(url)
+    }
   }
 
   return response

@@ -1,5 +1,5 @@
-// src/lib/auth/types.ts
-export type UserRole = 'student' | 'admin'
+// src/lib/auth/types.ts - ACTUALIZADO
+export type UserRole = 'student' | 'content_admin' | 'support_admin' | 'superadmin'
 export type SubscriptionStatus = 'free' | 'premium'
 export type Language = 'es' | 'en'
 export type NotationPreference = 'spanish' | 'english'
