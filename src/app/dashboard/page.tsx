@@ -9,10 +9,18 @@ export default function DashboardPage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
 
-  // ✅ Prevenir hydration mismatch
+  // ✅ TODOS los hooks SIEMPRE en el mismo orden
   useEffect(() => {
     setMounted(true)
   }, [])
+
+  // ✅ useEffect para redirección - SIEMPRE se ejecuta
+  useEffect(() => {
+    // Solo redirigir cuando no esté cargando y no haya usuario
+    if (!isLoading && !user && mounted) {
+      router.push('/auth/login')
+    }
+  }, [isLoading, user, mounted, router])
 
   const handleLogout = async () => {
     await logout()
@@ -31,12 +39,8 @@ export default function DashboardPage() {
     )
   }
 
-  // ✅ Si no hay usuario, redirigir
+  // ✅ Si no hay usuario, mostrar loading (el useEffect se encarga de redirigir)
   if (!user) {
-    useEffect(() => {
-      router.push('/auth/login')
-    }, [router])
-    
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
         <div className="text-center">

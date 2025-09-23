@@ -1,7 +1,10 @@
-// middleware.ts (en la raíz del proyecto) - CORREGIDO
+// middleware.ts - CORREGIDO con roles múltiples
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+
+// Tipos de roles que pueden acceder al admin
+type AdminRole = 'superadmin' | 'content_admin' | 'support_admin'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -77,7 +80,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Si va a admin, verificar que tenga rol apropiado
+  // 🎯 AQUÍ ESTÁ LA CORRECCIÓN PRINCIPAL
   if (user && isAdminPage) {
     try {
       const { data: profile } = await supabase
@@ -86,14 +89,19 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      // Solo admins pueden acceder a /admin (CORREGIDO)
-      if (!profile || profile.role !== 'admin') {
+      // Lista de roles que pueden acceder al admin
+      const adminRoles: AdminRole[] = ['superadmin', 'content_admin', 'support_admin']
+      
+      // Verificar si el rol del usuario está en la lista de roles admin
+      if (!profile || !adminRoles.includes(profile.role as AdminRole)) {
+        console.log(`Access denied for role: ${profile?.role}`)
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)
       }
+      
+      console.log(`Admin access granted for role: ${profile.role}`)
     } catch (error) {
       console.error('Error checking admin role:', error)
-      // Si hay error obteniendo el perfil, redirect a dashboard
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
     }

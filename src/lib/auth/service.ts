@@ -1,5 +1,5 @@
-// src/lib/auth/service.ts - IMPORTS CORREGIDOS
-import { supabase } from '@/lib/supabase/client'  // ✅ Ruta absoluta
+// src/lib/auth/service.ts - CON DEBUGGING MEJORADO
+import { supabase } from '@/lib/supabase/client'
 import type { 
   AuthUser, 
   LoginCredentials, 
@@ -9,17 +9,55 @@ import type {
   SubscriptionStatus,
   Language,
   NotationPreference
-} from '@/lib/auth/types'  // ✅ Ruta absoluta
+} from '@/lib/auth/types'
 
 class AuthService {
   async getCurrentUser(): Promise<AuthUser | null> {
     try {
       console.log('🔍 AuthService: Obteniendo usuario actual...')
       
+      // ✅ Verificar variables de entorno PRIMERO
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+        console.error('❌ NEXT_PUBLIC_SUPABASE_URL no encontrada')
+        throw new Error('Variables de entorno faltantes')
+      }
+      
+      if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        console.error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY no encontrada')
+        throw new Error('Variables de entorno faltantes')
+      }
+      
+      console.log('✅ Variables de entorno OK')
+      console.log('🔍 URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+      console.log('🔍 Key (últimos 4):', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY.slice(-4))
+      
+      // ✅ Intentar obtener sesión primero
+      console.log('🔍 Verificando sesión actual...')
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession()
+      
+      if (sessionError) {
+        console.error('❌ Error getting session:', sessionError)
+        return null
+      }
+      
+      console.log('🔍 Sesión:', sessionData.session ? 'EXISTE' : 'NO EXISTE')
+      
+      if (!sessionData.session) {
+        console.log('🔍 No hay sesión activa')
+        return null
+      }
+      
+      // ✅ Si hay sesión, obtener usuario
+      console.log('🔍 Obteniendo usuario de la sesión...')
       const { data: { user }, error } = await supabase.auth.getUser()
       
       if (error) {
         console.error('❌ Error getting auth user:', error)
+        // Si hay error de sesión, limpiar localStorage
+        if (error.message.includes('session')) {
+          console.log('🧹 Limpiando sesión corrupta...')
+          await supabase.auth.signOut()
+        }
         return null
       }
       
@@ -43,7 +81,7 @@ class AuthService {
       const { data: { user } } = await supabase.auth.getUser()
       
       if (!user) {
-        console.log('❌ No hay usuario auth')
+        console.log('❌ No hay usuario auth al obtener perfil')
         return null
       }
 
@@ -106,6 +144,9 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<{ user: AuthUser | null; error: AuthError | null }> {
     try {
       console.log('🔍 AuthService: Intentando login...')
+      
+      // ✅ Limpiar cualquier sesión previa antes de login
+      await supabase.auth.signOut()
       
       const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email,

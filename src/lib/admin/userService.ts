@@ -1,4 +1,4 @@
-// src/lib/admin/userService.ts
+// src/lib/admin/userService.ts - CORREGIDO
 import { supabase } from '../supabase/client'
 
 export interface User {
@@ -32,6 +32,104 @@ export interface UpdateUserData {
 }
 
 class UserService {
+  // ... otros métodos igual ...
+
+  // 🎯 MÉTODO UPDATE CORREGIDO - sin .single() problemático
+  async updateUser(id: string, userData: UpdateUserData): Promise<{ data: User | null; error: string | null }> {
+    try {
+      console.log('🔍 Actualizando usuario:', id, userData)
+      
+      const updateData = {
+        ...userData,
+        updated_at: new Date().toISOString()
+      }
+      
+      // Limpiar campos undefined
+      Object.keys(updateData).forEach(key => {
+        if (updateData[key as keyof typeof updateData] === undefined) {
+          delete updateData[key as keyof typeof updateData]
+        }
+      })
+      
+      console.log('📝 Datos finales a actualizar:', updateData)
+      
+      // 🔥 QUERY SIMPLE sin .single() que puede estar causando problemas
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updateData)
+        .eq('id', id)
+        .select()
+
+      if (error) {
+        console.error('❌ Error completo en update:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        })
+        return { data: null, error: `Error al actualizar usuario: ${error.message}` }
+      }
+
+      console.log('✅ Usuario actualizado - data recibida:', data)
+      
+      // Verificar que tenemos datos
+      if (!data || data.length === 0) {
+        console.error('❌ No se devolvió ningún registro actualizado')
+        return { data: null, error: 'No se pudo actualizar el usuario - registro no encontrado' }
+      }
+
+      // Tomar el primer elemento si hay múltiples
+      const updatedUser = Array.isArray(data) ? data[0] : data
+      console.log('✅ Usuario actualizado exitosamente:', updatedUser)
+      
+      return { data: updatedUser as User, error: null }
+    } catch (error) {
+      console.error('❌ Error inesperado completo:', error)
+      const errorMessage = error instanceof Error ? error.message : JSON.stringify(error)
+      return { data: null, error: `Error inesperado: ${errorMessage}` }
+    }
+  }
+
+  // 🎯 MÉTODO CREATE usando API route (SIN afectar sesión actual)
+  async createUser(userData: CreateUserData): Promise<{ data: User | null; error: string | null }> {
+    try {
+      console.log('🔍 Creando usuario via API:', userData.email)
+      
+      // Obtener token actual para autenticarse con la API
+      const { data: { session } } = await supabase.auth.getSession()
+      
+      if (!session?.access_token) {
+        return { data: null, error: 'No hay sesión activa' }
+      }
+
+      // Llamar a nuestra API route
+      const response = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify(userData)
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        console.error('❌ Error en API:', result.error)
+        return { data: null, error: result.error || 'Error al crear usuario' }
+      }
+
+      console.log('✅ Usuario creado via API:', result.data)
+      return { data: result.data as User, error: null }
+    } catch (error) {
+      console.error('❌ Error inesperado llamando API:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Error inesperado'
+      return { data: null, error: errorMessage }
+    }
+  }
+
+  // ... resto de métodos igual ...
+
   async getAllUsers(): Promise<{ data: User[] | null; error: string | null }> {
     try {
       const { data, error } = await supabase
@@ -68,67 +166,6 @@ class UserService {
       return { data: data as User, error: null }
     } catch (error) {
       return { data: null, error: 'Error inesperado' }
-    }
-  }
-
-  async createUser(userData: CreateUserData): Promise<{ data: User | null; error: string | null }> {
-    try {
-      const newUserData = {
-        email: userData.email,
-        full_name: userData.full_name || null,
-        role: userData.role || 'student',
-        subscription_status: 'free' as const,
-        language: userData.language || 'es' as const,
-        notation_preference: userData.notation_preference || 'spanish' as const,
-        deleted_at: null
-      }
-
-      const { data, error } = await supabase
-        .from('profiles')
-        .insert(newUserData)
-        .select()
-        .single()
-
-      if (error) {
-        return { data: null, error: 'Error al crear usuario' }
-      }
-
-      return { data: data as User, error: null }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error inesperado'
-      return { data: null, error: errorMessage }
-    }
-  }
-
-  async updateUser(id: string, userData: UpdateUserData): Promise<{ data: User | null; error: string | null }> {
-    try {
-      const updateData = {
-        ...userData,
-        updated_at: new Date().toISOString()
-      }
-      
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key as keyof typeof updateData] === undefined) {
-          delete updateData[key as keyof typeof updateData]
-        }
-      })
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', id)
-        .is('deleted_at', null)
-        .select()
-        .single()
-
-      if (error) {
-        return { data: null, error: 'Error al actualizar usuario' }
-      }
-
-      return { data: data as User, error: null }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Error inesperado'
-      return { data: null, error: errorMessage }
     }
   }
 
