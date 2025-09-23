@@ -2,6 +2,7 @@
 import React from 'react'
 import { useAuth } from './context'
 import type { AuthUser } from './types'
+
 // Roles específicos del dominio
 export type UserRole = 
   | 'student'           // Estudiante de guitarra
@@ -69,10 +70,9 @@ export function roleHasPermission(role: UserRole, permission: Permission): boole
 
 // Hook para usar en componentes
 export function usePermissions() {
-  // Este hook lo implementarías con tu AuthContext
-  const { user } = useAuth() // Tu hook existente
+  const { user } = useAuth()
   
-  const userPermissions = user ? getRolePermissions(user.role) : []
+  const userPermissions = user ? getRolePermissions(user.role as UserRole) : []
   
   const hasPermission = (permission: Permission): boolean => {
     return userPermissions.includes(permission)
@@ -141,10 +141,10 @@ export function ProtectedSection({
     : false
   
   if (!hasAccess) {
-    return fallback
+    return <>{fallback}</>
   }
   
-  return children
+  return <>{children}</>
 }
 
 // Tipos para el usuario extendido

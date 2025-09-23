@@ -1,18 +1,20 @@
-// src/lib/auth/context.tsx
+// src/lib/auth/context.tsx - IMPORTS CORREGIDOS
 'use client'
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { authService } from './service'
-import type { AuthUser, AuthError, LoginCredentials, RegisterData } from './types'
+import { authService } from '@/lib/auth/service'  // ✅ Ruta absoluta
+import type { 
+  AuthUser, 
+  AuthError, 
+  LoginCredentials, 
+  RegisterData 
+} from '@/lib/auth/types'  // ✅ Ruta absoluta
 
 interface AuthContextType {
-  // Estado
   user: AuthUser | null
   isLoading: boolean
   isAuthenticated: boolean
   error: AuthError | null
-
-  // Acciones
   login: (credentials: LoginCredentials) => Promise<boolean>
   register: (userData: RegisterData) => Promise<boolean>
   logout: () => Promise<void>
@@ -34,22 +36,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const isAuthenticated = !!user
 
-  // Inicializar usuario al cargar la app
   useEffect(() => {
+    console.log('🔍 AuthProvider: Iniciando...')
     setMounted(true)
     
     const initializeAuth = async () => {
       try {
+        console.log('🔍 AuthProvider: Iniciando auth...')
         setIsLoading(true)
+        
+        // Verificar variables de entorno
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          console.error('❌ NEXT_PUBLIC_SUPABASE_URL no encontrada')
+          throw new Error('Variables de entorno faltantes')
+        }
+        
+        if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+          console.error('❌ NEXT_PUBLIC_SUPABASE_ANON_KEY no encontrada')
+          throw new Error('Variables de entorno faltantes')
+        }
+        
+        console.log('✅ Variables de entorno OK')
+        
         const currentUser = await authService.getCurrentUser()
+        console.log('🔍 Usuario actual:', currentUser)
+        
         setUser(currentUser)
+        console.log('✅ Auth inicializada correctamente')
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('❌ Error initializing auth:', error)
         setError({
           message: 'Error al cargar la sesión',
           type: 'network'
         })
       } finally {
+        console.log('🔍 AuthProvider: Finalizando loading...')
         setIsLoading(false)
       }
     }
@@ -57,13 +78,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
     initializeAuth()
 
     // Escuchar cambios de auth
-    const { data: { subscription } } = authService.onAuthStateChange((user) => {
+    console.log('🔍 AuthProvider: Configurando listener...')
+    const { data: { subscription } } = authService.onAuthStateChange((user: AuthUser | null) => {
+      console.log('🔍 Auth state change:', user)
       setUser(user)
       setIsLoading(false)
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log('🔍 AuthProvider: Limpiando subscription...')
+      subscription.unsubscribe()
+    }
   }, [])
+
+  // Log cuando cambie el estado
+  useEffect(() => {
+    console.log('🔍 Estado actual:', { user: !!user, isLoading, mounted })
+  }, [user, isLoading, mounted])
 
   const login = async (credentials: LoginCredentials): Promise<boolean> => {
     try {
@@ -106,7 +137,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return false
       }
 
-      // Si no hay error, el registro fue exitoso
       return true
     } catch (error) {
       setError({
@@ -165,22 +195,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
     refreshUser
   }
 
-  // Prevent hydration mismatch
+  // Prevent hydration mismatch - SIMPLIFICADO
   if (!mounted) {
+    console.log('🔍 No mounted, mostrando fallback...')
     return (
-      <AuthContext.Provider value={{
-        user: null,
-        isLoading: true,
-        isAuthenticated: false,
-        error: null,
-        login: async () => false,
-        register: async () => false,
-        logout: async () => {},
-        clearError: () => {},
-        refreshUser: async () => {}
-      }}>
-        {children}
-      </AuthContext.Provider>
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center">
+        <div className="text-white">Inicializando...</div>
+      </div>
     )
   }
 
@@ -191,7 +212,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   )
 }
 
-// Hook personalizado para usar el contexto
 export function useAuth(): AuthContextType {
   const context = useContext(AuthContext)
   

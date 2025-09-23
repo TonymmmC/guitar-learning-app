@@ -1,4 +1,4 @@
-// middleware.ts (en la raíz del proyecto)
+// middleware.ts (en la raíz del proyecto) - CORREGIDO
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
@@ -86,12 +86,13 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      // Solo admins pueden acceder a /admin
-      if (!profile || profile.role === 'student') {
+      // Solo admins pueden acceder a /admin (CORREGIDO)
+      if (!profile || profile.role !== 'admin') {
         url.pathname = '/dashboard'
         return NextResponse.redirect(url)
       }
     } catch (error) {
+      console.error('Error checking admin role:', error)
       // Si hay error obteniendo el perfil, redirect a dashboard
       url.pathname = '/dashboard'
       return NextResponse.redirect(url)
@@ -103,8 +104,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/auth/:path*',
-    '/dashboard/:path*',
-    '/admin/:path*'
+    '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

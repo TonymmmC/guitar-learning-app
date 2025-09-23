@@ -1,7 +1,6 @@
 'use client'
 
 import { useAuth } from '@/lib/auth/context'
-import { usePermissions } from '@/lib/auth/rbac'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { 
@@ -22,47 +21,66 @@ export default function AdminLayout({
   children: React.ReactNode
 }) {
   const { user, isLoading, logout } = useAuth()
-  const { canAccess, hasPermission } = usePermissions()
   const router = useRouter()
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
+  // Simplificamos la lógica - solo verificamos si es admin directamente
+  const isAdmin = user?.role && user.role !== 'student'
+
   useEffect(() => {
-    if (!isLoading && !canAccess('admin_panel')) {
+    // Solo redirigir cuando estemos seguros de que no es admin
+    if (!isLoading && user && !isAdmin) {
+      console.log('User role:', user.role, 'Redirecting to dashboard')
       router.push('/dashboard')
     }
-  }, [isLoading, canAccess, router])
+  }, [isLoading, user, isAdmin, router])
 
   const handleLogout = async () => {
     await logout()
     router.push('/auth/login')
   }
 
+  // Estado de carga mejorado
   if (isLoading) {
     return (
       <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
-        <div className="text-[#e8e8e8]">Verificando permisos...</div>
-      </div>
-    )
-  }
-
-  if (!canAccess('admin_panel')) {
-    return (
-      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-[#e8e8e8] mb-4">Acceso Denegado</h1>
-          <p className="text-[#a8a8a8] mb-6">No tienes permisos para acceder al panel de administración</p>
-          <button
-            onClick={() => router.push('/dashboard')}
-            className="bg-[#5c9eff] hover:opacity-90 px-6 py-2 rounded-lg text-white transition-opacity"
-          >
-            Volver al Dashboard
-          </button>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#5c9eff] mb-4"></div>
+          <div className="text-[#e8e8e8]">Cargando...</div>
         </div>
       </div>
     )
   }
 
+  // Si no hay usuario, el middleware debería haber redirigido
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-[#e8e8e8] mb-4">Sin autenticación</h1>
+          <p className="text-[#a8a8a8] mb-6">Redirigiendo...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Si no es admin, mostrar acceso denegado pero permitir que el useEffect redirija
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold text-[#e8e8e8] mb-4">Acceso Denegado</h1>
+          <p className="text-[#a8a8a8] mb-6">
+            Tu rol: {user.role} - Solo administradores pueden acceder
+          </p>
+          <p className="text-[#6b6b6b] mb-4">Redirigiendo...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Navegación simplificada basada en rol directo
   const navigation = [
     {
       name: 'Dashboard',
@@ -76,28 +94,28 @@ export default function AdminLayout({
       href: '/admin/users',
       icon: Users,
       current: pathname.startsWith('/admin/users'),
-      show: hasPermission('users.read')
+      show: ['superadmin', 'support_admin'].includes(user.role)
     },
     {
       name: 'Lecciones',
       href: '/admin/lessons',
       icon: BookOpen,
       current: pathname.startsWith('/admin/lessons'),
-      show: hasPermission('lessons.read')
+      show: ['superadmin', 'content_admin'].includes(user.role)
     },
     {
       name: 'Actividad',
       href: '/admin/activity',
       icon: Activity,
       current: pathname.startsWith('/admin/activity'),
-      show: hasPermission('analytics.system')
+      show: user.role === 'superadmin'
     },
     {
       name: 'Configuración',
       href: '/admin/settings',
       icon: Settings,
       current: pathname.startsWith('/admin/settings'),
-      show: hasPermission('system.settings')
+      show: user.role === 'superadmin'
     }
   ].filter(item => item.show)
 
@@ -197,6 +215,9 @@ export default function AdminLayout({
             </h1>
           </div>
           <div className="flex items-center space-x-4">
+            <div className="text-sm text-[#6b6b6b]">
+              Rol: {user.role}
+            </div>
             <button
               onClick={() => router.push('/dashboard')}
               className="bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-[rgba(255,255,255,0.08)] px-4 py-2 rounded-lg text-[#e8e8e8] transition-colors text-sm"
