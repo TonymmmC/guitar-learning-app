@@ -1,4 +1,4 @@
-// src/components/admin/modals/EditUserModal.tsx - CON API REAL
+// src/components/admin/modals/EditUserModal.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -33,27 +33,22 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!user) return
+    if (!user || loading) return
 
     setLoading(true)
     setError(null)
 
     try {
-      console.log('Enviando actualización:', formData)
-      
-      // Llamada REAL a la API de Supabase
       const { error: updateError } = await userService.updateUser(user.id, formData)
       
       if (updateError) {
         setError(updateError)
       } else {
-        console.log('✅ Usuario actualizado exitosamente')
-        onUserUpdated() // Recargar la lista
-        onClose() // Cerrar modal
+        onUserUpdated()
+        onClose()
       }
     } catch (error) {
-      console.error('Error actualizando usuario:', error)
-      setError('Error inesperado al actualizar usuario')
+      setError('Error inesperado')
     } finally {
       setLoading(false)
     }
@@ -68,15 +63,6 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
     }))
   }
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'superadmin': return <Shield className="w-4 h-4 text-[#ff8a50]" />
-      case 'content_admin': return <Shield className="w-4 h-4 text-[#5c9eff]" />
-      case 'support_admin': return <Shield className="w-4 h-4 text-purple-400" />
-      default: return <UserIcon className="w-4 h-4 text-[#00d4aa]" />
-    }
-  }
-
   if (!user) return null
 
   return (
@@ -88,7 +74,6 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           </div>
         )}
 
-        {/* Email (solo lectura) */}
         <div>
           <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
             <Mail className="w-4 h-4 mr-2" />
@@ -99,7 +84,6 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           </div>
         </div>
 
-        {/* Nombre */}
         <div>
           <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
             <UserIcon className="w-4 h-4 mr-2" />
@@ -114,33 +98,26 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           />
         </div>
 
-        {/* Rol */}
         <div>
           <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
-            {getRoleIcon(user.role)}
-            <span className="ml-2">Rol</span>
+            <Shield className="w-4 h-4 mr-2" />
+            Rol
           </label>
           <select
             value={formData.role}
             onChange={handleInputChange('role')}
-            disabled={user.role === 'superadmin'} // Superadmin no puede cambiar su rol
-            className="w-full px-3 py-2 bg-[#242424] border border-[rgba(255,255,255,0.08)] rounded-lg text-[#e8e8e8] focus:outline-none focus:border-[#5c9eff] disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={user.role === 'superadmin'}
+            className="w-full px-3 py-2 bg-[#242424] border border-[rgba(255,255,255,0.08)] rounded-lg text-[#e8e8e8] focus:outline-none focus:border-[#5c9eff] disabled:opacity-50"
           >
             <option value="student">Estudiante</option>
-            <option value="content_admin">Administrador de Contenido</option>
-            <option value="support_admin">Administrador de Soporte</option>
+            <option value="content_admin">Content Admin</option>
+            <option value="support_admin">Support Admin</option>
             {user.role === 'superadmin' && (
-              <option value="superadmin">Super Administrador</option>
+              <option value="superadmin">Super Admin</option>
             )}
           </select>
-          {user.role === 'superadmin' && (
-            <p className="text-xs text-[#6b6b6b] mt-1">
-              Los Super Administradores no pueden cambiar su propio rol
-            </p>
-          )}
         </div>
 
-        {/* Suscripción */}
         <div>
           <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
             <Shield className="w-4 h-4 mr-2" />
@@ -156,9 +133,7 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           </select>
         </div>
 
-        {/* Configuraciones */}
         <div className="grid grid-cols-2 gap-4">
-          {/* Idioma */}
           <div>
             <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
               <Globe className="w-4 h-4 mr-2" />
@@ -174,7 +149,6 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
             </select>
           </div>
 
-          {/* Notación */}
           <div>
             <label className="flex items-center text-sm font-medium text-[#e8e8e8] mb-2">
               <Music className="w-4 h-4 mr-2" />
@@ -191,15 +165,6 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           </div>
         </div>
 
-        {/* Información adicional */}
-        <div className="bg-[#1a1a1a] rounded-lg p-3">
-          <div className="text-xs text-[#6b6b6b] space-y-1">
-            <p>Creado: {new Date(user.created_at).toLocaleDateString('es-ES')}</p>
-            <p>Última actualización: {new Date(user.updated_at).toLocaleDateString('es-ES')}</p>
-          </div>
-        </div>
-
-        {/* Botones */}
         <div className="flex justify-end space-x-3 pt-4">
           <button
             type="button"
@@ -212,12 +177,9 @@ export default function EditUserModal({ isOpen, user, onClose, onUserUpdated }: 
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#5c9eff] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg transition-opacity flex items-center space-x-2"
+            className="bg-[#5c9eff] hover:opacity-90 disabled:opacity-50 text-white px-6 py-2 rounded-lg transition-opacity"
           >
-            {loading && (
-              <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-            )}
-            <span>{loading ? 'Guardando...' : 'Guardar Cambios'}</span>
+            {loading ? 'Guardando...' : 'Guardar Cambios'}
           </button>
         </div>
       </form>
