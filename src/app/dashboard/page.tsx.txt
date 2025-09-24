@@ -1,0 +1,253 @@
+// src/app/dashboard/page.tsx - PÁGINA PRINCIPAL REAL
+'use client'
+
+import { useAuth } from '@/lib/auth/context'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
+
+export default function HomePage() {
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (user) {
+        router.replace('/dashboard')
+      } else {
+        router.replace('/auth/login')
+      }
+    }
+  }, [isLoading, user, router])
+
+  // Solo loading, sin contenido
+  return (
+    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5c9eff]"></div>
+    </div>
+  )
+}
+
+  const handleLogout = async () => {
+    await logout()
+    router.push('/auth/login')
+  }
+
+  const goToAdmin = () => {
+    router.push('/admin')
+  }
+
+  if (!mounted || isLoading) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#5c9eff]"></div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center">
+        <div className="text-[#e8e8e8]">Redirigiendo...</div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0f0f0f] text-[#e8e8e8]">
+      {/* Header mejorado */}
+      <header className="bg-[#111111] border-b border-[rgba(255,255,255,0.06)]">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            {/* Logo y marca */}
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-[#5c9eff] to-[#00d4aa] rounded-lg flex items-center justify-center">
+                <Music className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-[#e8e8e8]">GuitarSL</h1>
+                <p className="text-xs text-[#6b6b6b]">Simple to Learn</p>
+              </div>
+            </div>
+
+            {/* User actions */}
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-[#a8a8a8]">
+                {user.full_name || user.email.split('@')[0]}
+              </div>
+              
+              {user.role !== 'student' && (
+                <button
+                  onClick={goToAdmin}
+                  className="flex items-center space-x-2 bg-[#5c9eff] hover:opacity-90 px-3 py-2 rounded-lg transition-opacity text-sm"
+                >
+                  <Settings className="w-4 h-4" />
+                  <span>Admin</span>
+                </button>
+              )}
+              
+              <button
+                onClick={handleLogout}
+                className="flex items-center space-x-2 bg-[#1a1a1a] hover:bg-[#1f1f1f] border border-[rgba(255,255,255,0.08)] px-3 py-2 rounded-lg transition-colors text-sm"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Salir</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+        {/* Welcome section - más minimalista */}
+        <div className="text-center">
+          <h2 className="text-3xl font-bold mb-3 bg-gradient-to-r from-[#5c9eff] to-[#00d4aa] bg-clip-text text-transparent">
+            Aprende guitarra de forma inteligente
+          </h2>
+          <p className="text-[#a8a8a8] max-w-2xl mx-auto">
+            Domina el diapasón con nuestra guitarra interactiva y reconocimiento de audio en tiempo real
+          </p>
+        </div>
+
+        {/* FEATURE PRINCIPAL: Guitarra Interactiva */}
+        <InteractiveGuitar />
+
+        {/* Herramientas disponibles */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {/* Lecciones - AHORA REAL */}
+          <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 hover:bg-[#1f1f1f] transition-colors">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-[#5c9eff]/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">📚</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Lecciones Estructuradas</h3>
+                <p className="text-xs text-[#00d4aa]">✅ Disponible</p>
+              </div>
+            </div>
+            <p className="text-[#a8a8a8] mb-4 text-sm">
+              Aprende paso a paso desde identificar cuerdas hasta tocar acordes completos
+            </p>
+            <button 
+              onClick={() => router.push('/lessons')}
+              className="bg-[#5c9eff] hover:opacity-90 text-white px-4 py-2 rounded-lg transition-opacity text-sm w-full"
+            >
+              Comenzar Lecciones
+            </button>
+          </div>
+
+          {/* Afinador - Coming Soon */}
+          <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 hover:bg-[#1f1f1f] transition-colors opacity-75">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-[#00d4aa]/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">🎵</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Afinador Inteligente</h3>
+                <p className="text-xs text-[#ff8a50]">🔄 En desarrollo</p>
+              </div>
+            </div>
+            <p className="text-[#a8a8a8] mb-4 text-sm">
+              Afina tu guitarra con detección de audio precisa y retroalimentación visual
+            </p>
+            <button 
+              disabled
+              className="bg-[#242424] text-[#6b6b6b] px-4 py-2 rounded-lg text-sm w-full cursor-not-allowed"
+            >
+              Próximamente
+            </button>
+          </div>
+
+          {/* Acordes - Coming Soon */}
+          <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 hover:bg-[#1f1f1f] transition-colors opacity-75">
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-12 h-12 bg-[#ff8a50]/20 rounded-lg flex items-center justify-center">
+                <span className="text-2xl">🎸</span>
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold">Biblioteca de Acordes</h3>
+                <p className="text-xs text-[#ff8a50]">🔄 En desarrollo</p>
+              </div>
+            </div>
+            <p className="text-[#a8a8a8] mb-4 text-sm">
+              Diccionario interactivo con acordes populares y progresiones comunes
+            </p>
+            <button 
+              disabled
+              className="bg-[#242424] text-[#6b6b6b] px-4 py-2 rounded-lg text-sm w-full cursor-not-allowed"
+            >
+              Próximamente
+            </button>
+          </div>
+        </div>
+
+        {/* Roadmap transparente */}
+        <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6">
+          <h3 className="text-lg font-semibold mb-4 text-[#e8e8e8]">🗓 Roadmap de Desarrollo</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            
+            {/* Completado */}
+            <div className="bg-[#00d4aa]/10 border border-[#00d4aa]/20 rounded-lg p-4">
+              <h4 className="font-medium text-[#00d4aa] mb-2">✅ Marzo 2025</h4>
+              <ul className="space-y-1 text-[#a8a8a8]">
+                <li>• Guitarra interactiva</li>
+                <li>• Audio síntesis</li>
+                <li>• Sistema lecciones base</li>
+                <li>• Primera lección completa</li>
+              </ul>
+            </div>
+
+            {/* En desarrollo */}
+            <div className="bg-[#ff8a50]/10 border border-[#ff8a50]/20 rounded-lg p-4">
+              <h4 className="font-medium text-[#ff8a50] mb-2">🔄 Abril 2025</h4>
+              <ul className="space-y-1 text-[#a8a8a8]">
+                <li>• Afinador con micrófono</li>
+                <li>• 5 lecciones básicas</li>
+                <li>• Reconocimiento de notas</li>
+                <li>• Métricas de progreso</li>
+              </ul>
+            </div>
+
+            {/* Planificado */}
+            <div className="bg-[#6b6b6b]/10 border border-[#6b6b6b]/20 rounded-lg p-4">
+              <h4 className="font-medium text-[#6b6b6b] mb-2">🔬 Mayo 2025</h4>
+              <ul className="space-y-1 text-[#a8a8a8]">
+                <li>• Acordes interactivos</li>
+                <li>• Detección de acordes</li>
+                <li>• Modo práctica libre</li>
+                <li>• Estadísticas avanzadas</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA para siguientes funciones */}
+        <div className="bg-gradient-to-r from-[#5c9eff]/10 to-[#00d4aa]/10 border border-[rgba(92,158,255,0.2)] rounded-lg p-6 text-center">
+          <h3 className="text-lg font-semibold mb-2 text-[#e8e8e8]">¿Qué te gustaría ver primero?</h3>
+          <p className="text-[#a8a8a8] text-sm mb-4">
+            Ayúdanos a priorizar las funciones que más necesitas
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <button className="bg-[#5c9eff]/20 hover:bg-[#5c9eff]/30 border border-[#5c9eff]/30 px-4 py-2 rounded-lg transition-colors text-sm">
+              🎯 Lecciones básicas
+            </button>
+            <button className="bg-[#00d4aa]/20 hover:bg-[#00d4aa]/30 border border-[#00d4aa]/30 px-4 py-2 rounded-lg transition-colors text-sm">
+              🎵 Afinador preciso
+            </button>
+            <button className="bg-[#ff8a50]/20 hover:bg-[#ff8a50]/30 border border-[#ff8a50]/30 px-4 py-2 rounded-lg transition-colors text-sm">
+              🎸 Acordes populares
+            </button>
+          </div>
+          <p className="text-xs text-[#6b6b6b] mt-3">
+            * Estas opciones guardarán tu preferencia para el roadmap
+          </p>
+        </div>
+
+        {/* Footer minimalista */}
+        <div className="text-center text-[#6b6b6b] text-xs pt-8 border-t border-[rgba(255,255,255,0.06)]">
+          <p>GuitarSL v0.1 • Hecho con ❤️ para músicos • {new Date().getFullYear()}</p>
+        </div>
+      </main>
+    </div>
+  )
+}

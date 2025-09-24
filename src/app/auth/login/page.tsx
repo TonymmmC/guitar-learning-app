@@ -1,3 +1,4 @@
+// src/app/auth/login/page.tsx - CORREGIDO
 'use client'
 
 import { useState } from 'react'
@@ -17,15 +18,15 @@ export default function LoginPage() {
     const success = await login({ email, password })
     
     if (success) {
-      router.push('/dashboard')
+      router.push('/') // CAMBIADO: ahora redirige a la página principal
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#0f0f0f] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-gray-900 border border-gray-800 rounded-lg p-8">
-          <h1 className="text-2xl font-bold text-white text-center mb-8">
+        <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-8">
+          <h1 className="text-2xl font-medium text-[#e8e8e8] text-center mb-8">
             Iniciar Sesión
           </h1>
 
@@ -37,7 +38,7 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-[#a8a8a8] mb-2">
                 Email
               </label>
               <input
@@ -45,14 +46,14 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-[#242424] border border-[rgba(255,255,255,0.08)] rounded-lg text-[#e8e8e8] focus:outline-none focus:border-[#5c9eff]"
                 placeholder="tu@email.com"
                 required
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-[#a8a8a8] mb-2">
                 Contraseña
               </label>
               <input
@@ -60,7 +61,7 @@ export default function LoginPage() {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800 border border-gray-700 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                className="w-full px-3 py-2 bg-[#242424] border border-[rgba(255,255,255,0.08)] rounded-lg text-[#e8e8e8] focus:outline-none focus:border-[#5c9eff]"
                 placeholder="••••••••"
                 required
               />
@@ -69,16 +70,16 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-2 px-4 rounded-lg transition-colors"
+              className="w-full bg-[#5c9eff] hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-medium py-3 rounded-lg transition-opacity"
             >
               {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
             </button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-gray-400 text-sm">
+            <p className="text-[#a8a8a8] text-sm">
               ¿No tienes cuenta?{' '}
-              <Link href="/auth/register" className="text-blue-400 hover:text-blue-300">
+              <Link href="/auth/register" className="text-[#5c9eff] hover:opacity-80">
                 Regístrate
               </Link>
             </p>
