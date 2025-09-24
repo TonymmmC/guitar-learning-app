@@ -1,11 +1,10 @@
-// src/app/page.tsx - PÁGINA PRINCIPAL COMPLETA
 'use client'
 
 import { useAuth } from '@/lib/auth/context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import InteractiveGuitar from '@/components/guitar/InteractiveGuitar'
-import { User, Settings, LogOut, Mic, Target, ChevronDown } from 'lucide-react'
+import { User, Settings, LogOut, Mic, Target, ChevronDown, BookOpen } from 'lucide-react'
 
 export default function HomePage() {
   const { user, logout, isLoading } = useAuth()
@@ -25,7 +24,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     await logout()
-    router.push('/auth/login')
+    window.location.href = '/auth/login' // Fuerza redirect completo
   }
 
   if (!mounted || isLoading) {
@@ -50,9 +49,27 @@ export default function HomePage() {
       <header className="bg-[#111111] border-b border-[rgba(255,255,255,0.06)]">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="w-8 h-8 bg-[#1a1a1a] rounded-lg border border-[rgba(255,255,255,0.08)]"></div>
-              <span className="text-lg font-medium text-[#e8e8e8]">GuitarSL</span>
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-[#1a1a1a] rounded-lg border border-[rgba(255,255,255,0.08)]"></div>
+                <span className="text-lg font-medium text-[#e8e8e8]">GuitarSL</span>
+              </div>
+              
+              {/* Navegación principal */}
+              <nav className="hidden md:flex items-center space-x-1">
+                <button
+                  onClick={() => router.push('/')}
+                  className="px-4 py-2 text-[#e8e8e8] bg-[#1a1a1a] rounded-lg"
+                >
+                  Inicio
+                </button>
+                <button
+                  onClick={() => router.push('/lessons')}
+                  className="px-4 py-2 text-[#a8a8a8] hover:text-[#e8e8e8] hover:bg-[#1a1a1a] rounded-lg transition-colors"
+                >
+                  Lecciones
+                </button>
+              </nav>
             </div>
 
             {/* User menu */}
@@ -92,6 +109,17 @@ export default function HomePage() {
                     )}
                     
                     <button
+                      onClick={() => {
+                        router.push('/lessons')
+                        setUserMenuOpen(false)
+                      }}
+                      className="w-full px-4 py-2 text-left text-sm text-[#a8a8a8] hover:text-[#e8e8e8] hover:bg-[#1f1f1f] transition-colors flex items-center space-x-2 md:hidden"
+                    >
+                      <BookOpen className="w-4 h-4" />
+                      <span>Lecciones</span>
+                    </button>
+                    
+                    <button
                       className="w-full px-4 py-2 text-left text-sm text-[#a8a8a8] hover:text-[#e8e8e8] hover:bg-[#1f1f1f] transition-colors flex items-center space-x-2"
                     >
                       <Settings className="w-4 h-4" />
@@ -120,13 +148,22 @@ export default function HomePage() {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* Hero */}
-        <div className="mb-12">
+        <div className="mb-8">
           <h1 className="text-3xl font-medium mb-3 text-[#e8e8e8]">
             Panel principal
           </h1>
-          <p className="text-[#a8a8a8] leading-relaxed">
+          <p className="text-[#a8a8a8] leading-relaxed mb-6">
             Aprende guitarra con herramientas interactivas y seguimiento de progreso
           </p>
+          
+          {/* CTA Lecciones */}
+          <button
+            onClick={() => router.push('/lessons')}
+            className="bg-[#5c9eff] hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-opacity flex items-center space-x-2"
+          >
+            <BookOpen className="w-5 h-5" />
+            <span>Comenzar Lecciones</span>
+          </button>
         </div>
 
         {/* Guitarra interactiva */}
@@ -195,6 +232,7 @@ export default function HomePage() {
                 <li>Sistema de usuarios</li>
                 <li>Guitarra interactiva</li>
                 <li>Audio síntesis</li>
+                <li>Sistema de lecciones</li>
               </ul>
             </div>
 
@@ -204,9 +242,9 @@ export default function HomePage() {
                 <span className="text-sm font-medium text-[#ff8a50]">En desarrollo</span>
               </div>
               <ul className="space-y-1 text-sm text-[#a8a8a8] ml-4">
-                <li>Sistema de lecciones</li>
                 <li>Detección de audio</li>
                 <li>Seguimiento de progreso</li>
+                <li>Más lecciones</li>
               </ul>
             </div>
 
