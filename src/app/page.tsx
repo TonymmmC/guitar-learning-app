@@ -4,7 +4,8 @@ import { useAuth } from '@/lib/auth/context'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import InteractiveGuitar from '@/components/guitar/InteractiveGuitar'
-import { User, Settings, LogOut, Mic, Target, ChevronDown, BookOpen } from 'lucide-react'
+import { User, Settings, LogOut, Mic, Target, ChevronDown, BookOpen, Play } from 'lucide-react'
+import Image from 'next/image'
 
 export default function HomePage() {
   const { user, logout, isLoading } = useAuth()
@@ -24,7 +25,7 @@ export default function HomePage() {
 
   const handleLogout = async () => {
     await logout()
-    window.location.href = '/auth/login' // Fuerza redirect completo
+    window.location.href = '/auth/login'
   }
 
   if (!mounted || isLoading) {
@@ -51,11 +52,12 @@ export default function HomePage() {
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-6">
               <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-[#1a1a1a] rounded-lg border border-[rgba(255,255,255,0.08)]"></div>
+                <div className="w-8 h-8 bg-[#5c9eff] rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">G</span>
+                </div>
                 <span className="text-lg font-medium text-[#e8e8e8]">GuitarSL</span>
               </div>
               
-              {/* Navegación principal */}
               <nav className="hidden md:flex items-center space-x-1">
                 <button
                   onClick={() => router.push('/')}
@@ -119,9 +121,7 @@ export default function HomePage() {
                       <span>Lecciones</span>
                     </button>
                     
-                    <button
-                      className="w-full px-4 py-2 text-left text-sm text-[#a8a8a8] hover:text-[#e8e8e8] hover:bg-[#1f1f1f] transition-colors flex items-center space-x-2"
-                    >
+                    <button className="w-full px-4 py-2 text-left text-sm text-[#a8a8a8] hover:text-[#e8e8e8] hover:bg-[#1f1f1f] transition-colors flex items-center space-x-2">
                       <Settings className="w-4 h-4" />
                       <span>Configuración</span>
                     </button>
@@ -146,89 +146,117 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-8">
-        {/* Hero */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-medium mb-3 text-[#e8e8e8]">
-            Panel principal
+      {/* Hero Section con imagen */}
+      <section className="relative h-[60vh] min-h-[400px] flex items-center justify-center overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="/images/guitarpage.jpg"
+            alt="Guitarra clásica"
+            fill
+            className="object-cover object-center"
+            priority
+          />
+          {/* Overlay gradiente para legibilidad */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/60" />
+        </div>
+        
+        {/* Hero Content */}
+        <div className="relative z-10 text-center px-6 max-w-4xl mx-auto">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+            Aprende a tocar guitarra
           </h1>
-          <p className="text-[#a8a8a8] leading-relaxed mb-6">
-            Aprende guitarra con herramientas interactivas y seguimiento de progreso
+          <p className="text-xl md:text-2xl text-gray-200 mb-8 font-light leading-relaxed">
+            Domina el diapasón con herramientas interactivas y audio en tiempo real
           </p>
           
-          {/* CTA Lecciones */}
-          <button
-            onClick={() => router.push('/lessons')}
-            className="bg-[#5c9eff] hover:opacity-90 text-white px-6 py-3 rounded-lg font-medium transition-opacity flex items-center space-x-2"
-          >
-            <BookOpen className="w-5 h-5" />
-            <span>Comenzar Lecciones</span>
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <button
+              onClick={() => router.push('/lessons')}
+              className="bg-[#5c9eff] hover:bg-[#4a8ce8] text-white px-8 py-4 rounded-lg font-semibold transition-all transform hover:scale-105 flex items-center space-x-3 justify-center shadow-lg"
+            >
+              <Play className="w-5 h-5" />
+              <span>Comenzar ahora</span>
+            </button>
+            
+            <button
+              onClick={() => document.getElementById('interactive-guitar')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-transparent border-2 border-white/30 hover:border-white/50 text-white px-8 py-4 rounded-lg font-semibold transition-all hover:bg-white/10"
+            >
+              Explorar herramientas
+            </button>
+          </div>
         </div>
+      </section>
 
+      <main className="max-w-7xl mx-auto px-6 py-12">
         {/* Guitarra interactiva */}
-        <div className="mb-12">
+        <div id="interactive-guitar" className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-[#e8e8e8]">
+              Guitarra Interactiva
+            </h2>
+            <p className="text-[#a8a8a8] max-w-2xl mx-auto">
+              Explora el diapasón, aprende las notas y escucha cómo suena cada cuerda
+            </p>
+          </div>
           <InteractiveGuitar />
         </div>
 
-        {/* Herramientas */}
-        <div className="mb-12">
-          <h2 className="text-xl font-medium mb-6 text-[#e8e8e8]">Herramientas</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            
-            {/* Afinador */}
-            <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 opacity-60">
-              <div className="flex items-center justify-between mb-4">
-                <Mic className="w-6 h-6 text-[#6b6b6b]" />
-                <span className="text-xs text-[#ff8a50] bg-[#ff8a50]/10 px-2 py-1 rounded">Desarrollo</span>
+        {/* Herramientas futuras - más compacto */}
+        <div className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-2xl font-semibold mb-4 text-[#e8e8e8]">Próximas herramientas</h2>
+            <p className="text-[#a8a8a8]">Funciones que estamos desarrollando para ti</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
+            <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 opacity-70">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-[#ff8a50]/20 rounded-lg flex items-center justify-center">
+                  <Mic className="w-5 h-5 text-[#ff8a50]" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#e8e8e8]">Afinador inteligente</h3>
+                  <p className="text-xs text-[#ff8a50]">En desarrollo</p>
+                </div>
               </div>
-              
-              <h3 className="text-lg font-medium mb-2 text-[#e8e8e8]">Afinador</h3>
-              <p className="text-[#a8a8a8] text-sm mb-6 leading-relaxed">
+              <p className="text-[#a8a8a8] text-sm">
                 Afinación precisa con detección de audio en tiempo real
               </p>
-              
-              <button 
-                disabled
-                className="w-full bg-[#242424] text-[#6b6b6b] font-medium py-2.5 rounded-lg cursor-not-allowed"
-              >
-                Próximamente
-              </button>
             </div>
 
-            {/* Acordes */}
-            <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 opacity-60">
-              <div className="flex items-center justify-between mb-4">
-                <Target className="w-6 h-6 text-[#6b6b6b]" />
-                <span className="text-xs text-[#ff8a50] bg-[#ff8a50]/10 px-2 py-1 rounded">Desarrollo</span>
+            <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6 opacity-70">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="w-10 h-10 bg-[#00d4aa]/20 rounded-lg flex items-center justify-center">
+                  <Target className="w-5 h-5 text-[#00d4aa]" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-[#e8e8e8]">Biblioteca de acordes</h3>
+                  <p className="text-xs text-[#ff8a50]">Planificado</p>
+                </div>
               </div>
-              
-              <h3 className="text-lg font-medium mb-2 text-[#e8e8e8]">Biblioteca de acordes</h3>
-              <p className="text-[#a8a8a8] text-sm mb-6 leading-relaxed">
+              <p className="text-[#a8a8a8] text-sm">
                 Diccionario interactivo con patrones de digitación
               </p>
-              
-              <button 
-                disabled
-                className="w-full bg-[#242424] text-[#6b6b6b] font-medium py-2.5 rounded-lg cursor-not-allowed"
-              >
-                Próximamente
-              </button>
             </div>
           </div>
         </div>
 
-        {/* Estado del desarrollo */}
-        <div className="bg-[#1a1a1a] border border-[rgba(255,255,255,0.08)] rounded-lg p-6">
-          <h2 className="text-lg font-medium mb-4 text-[#e8e8e8]">Estado del desarrollo</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-[#00d4aa]"></div>
-                <span className="text-sm font-medium text-[#00d4aa]">Completado</span>
+        {/* Stats de desarrollo - más visual */}
+        <div className="bg-gradient-to-br from-[#1a1a1a] to-[#242424] border border-[rgba(255,255,255,0.08)] rounded-xl p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-semibold text-[#e8e8e8] mb-2">Estado del proyecto</h2>
+            <p className="text-[#6b6b6b] text-sm">Desarrollo transparente y continuo</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#00d4aa]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-6 h-6 bg-[#00d4aa] rounded-full" />
               </div>
-              <ul className="space-y-1 text-sm text-[#a8a8a8] ml-4">
+              <h3 className="font-medium text-[#00d4aa] mb-2">Completado</h3>
+              <ul className="text-sm text-[#a8a8a8] space-y-1">
                 <li>Sistema de usuarios</li>
                 <li>Guitarra interactiva</li>
                 <li>Audio síntesis</li>
@@ -236,24 +264,24 @@ export default function HomePage() {
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-[#ff8a50]"></div>
-                <span className="text-sm font-medium text-[#ff8a50]">En desarrollo</span>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#ff8a50]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-6 h-6 bg-[#ff8a50] rounded-full animate-pulse" />
               </div>
-              <ul className="space-y-1 text-sm text-[#a8a8a8] ml-4">
+              <h3 className="font-medium text-[#ff8a50] mb-2">En desarrollo</h3>
+              <ul className="text-sm text-[#a8a8a8] space-y-1">
                 <li>Detección de audio</li>
                 <li>Seguimiento de progreso</li>
                 <li>Más lecciones</li>
               </ul>
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 rounded-full bg-[#6b6b6b]"></div>
-                <span className="text-sm font-medium text-[#6b6b6b]">Planificado</span>
+            <div className="text-center">
+              <div className="w-12 h-12 bg-[#6b6b6b]/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-6 h-6 bg-[#6b6b6b] rounded-full" />
               </div>
-              <ul className="space-y-1 text-sm text-[#a8a8a8] ml-4">
+              <h3 className="font-medium text-[#6b6b6b] mb-2">Planificado</h3>
+              <ul className="text-sm text-[#a8a8a8] space-y-1">
                 <li>Reconocimiento de acordes</li>
                 <li>Análisis de rendimiento</li>
                 <li>Exportar progreso</li>
@@ -263,7 +291,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Click outside to close menu */}
+      {/* Click outside menu */}
       {userMenuOpen && (
         <div 
           className="fixed inset-0 z-40" 
